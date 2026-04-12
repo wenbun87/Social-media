@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-bg-dark: #0f0f13;
+  --color-card-dark: #1a1a23;
+  --color-card-hover: #22222e;
+  --color-primary: #7c3aed;
+  --color-primary-light: #8b5cf6;
+  --color-accent: #06b6d4;
+  --color-accent-light: #22d3ee;
+  --color-border: #2a2a38;
+  --color-text-primary: #f1f1f3;
+  --color-text-secondary: #9ca3af;
+  --color-text-muted: #6b7280;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a38 transparent;
+}
+
+body {
+  background: var(--color-bg-dark);
+  color: var(--color-text-primary);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+input, textarea, select {
+  background: var(--color-bg-dark);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--color-primary);
+}
+
+select option {
+  background: var(--color-card-dark);
+}
