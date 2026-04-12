@@ -67,7 +67,7 @@ const EMPTY_FORM: IdeaFormData = {
 };
 
 export default function IdeasPage() {
-  const [ideas, setIdeas] = useIdeas();
+  const [ideas, setIdeas, refetchIdeas] = useIdeas();
 
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -167,7 +167,7 @@ export default function IdeasPage() {
     setShowModal(true);
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.title.trim()) return;
 
     const now = new Date().toISOString();
@@ -180,6 +180,11 @@ export default function IdeasPage() {
             : idea
         )
       );
+      fetch(`/api/ideas/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      }).then(() => refetchIdeas()).catch(() => {});
     } else {
       const newIdea: Idea = {
         id: uuidv4(),
@@ -188,6 +193,11 @@ export default function IdeasPage() {
         updatedAt: now,
       };
       setIdeas((prev) => [...prev, newIdea]);
+      fetch('/api/ideas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newIdea),
+      }).then(() => refetchIdeas()).catch(() => {});
     }
 
     setShowModal(false);
@@ -197,6 +207,7 @@ export default function IdeasPage() {
 
   function handleDelete(id: string) {
     setIdeas((prev) => prev.filter((idea) => idea.id !== id));
+    fetch(`/api/ideas/${id}`, { method: 'DELETE' }).then(() => refetchIdeas()).catch(() => {});
     setDeleteConfirmId(null);
   }
 

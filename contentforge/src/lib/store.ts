@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Idea, VoiceProfile, ContentPiece, TrendingTopic, AnalyticsEntry } from './types';
 
 function getFromStorage<T>(key: string, fallback: T): T {
@@ -22,23 +22,102 @@ function saveToStorage<T>(key: string, value: T): void {
   }
 }
 
-export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((prev: T) => T)) => void] {
+// Hook that syncs with API and uses localStorage as cache
+function useApiStorage<T>(
+  cacheKey: string,
+  apiPath: string,
+  initialValue: T
+): [T, (value: T | ((prev: T) => T)) => void, () => Promise<void>] {
   const [state, setState] = useState<T>(initialValue);
+  const [hydrated, setHydrated] = useState(false);
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  // Load from localStorage immediately, then fetch from API
+  useEffect(() => {
+    const cached = getFromStorage(cacheKey, initialValue);
+    setState(cached);
+    setHydrated(true);
+
+    fetch(apiPath)
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.statusText)))
+      .then((data: T) => {
+        setState(data);
+        saveToStorage(cacheKey, data);
+      })
+      .catch(() => {
+        // API unavailable, keep using cached data
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cacheKey, apiPath]);
+
+  const setValue = useCallback(
+    (value: T | ((prev: T) => T)) => {
+      setState((prev) => {
+        const next = typeof value === 'function' ? (value as (prev: T) => T)(prev) : value;
+        saveToStorage(cacheKey, next);
+        return next;
+      });
+    },
+    [cacheKey]
+  );
+
+  const refetch = useCallback(async () => {
+    try {
+      const res = await fetch(apiPath);
+      if (res.ok) {
+        const data: T = await res.json();
+        setState(data);
+        saveToStorage(cacheKey, data);
+      }
+    } catch {
+      // API unavailable
+    }
+  }, [apiPath, cacheKey]);
+
+  return [hydrated ? state : initialValue, setValue, refetch];
+}
+
+// Voice profile uses a single-object API (GET/PUT) instead of array CRUD
+function useApiVoiceProfile(
+  cacheKey: string,
+  apiPath: string,
+  initialValue: VoiceProfile
+): [VoiceProfile, (value: VoiceProfile | ((prev: VoiceProfile) => VoiceProfile)) => void] {
+  const [state, setState] = useState<VoiceProfile>(initialValue);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setState(getFromStorage(key, initialValue));
+    const cached = getFromStorage(cacheKey, initialValue);
+    setState(cached);
     setHydrated(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
 
-  const setValue = useCallback((value: T | ((prev: T) => T)) => {
-    setState(prev => {
-      const next = typeof value === 'function' ? (value as (prev: T) => T)(prev) : value;
-      saveToStorage(key, next);
-      return next;
-    });
-  }, [key]);
+    fetch(apiPath)
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.statusText)))
+      .then((data: VoiceProfile) => {
+        setState(data);
+        saveToStorage(cacheKey, data);
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cacheKey, apiPath]);
+
+  const setValue = useCallback(
+    (value: VoiceProfile | ((prev: VoiceProfile) => VoiceProfile)) => {
+      setState((prev) => {
+        const next = typeof value === 'function' ? value(prev) : value;
+        saveToStorage(cacheKey, next);
+        // Sync to API in background
+        fetch(apiPath, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(next),
+        }).catch(() => {});
+        return next;
+      });
+    },
+    [cacheKey, apiPath]
+  );
 
   return [hydrated ? state : initialValue, setValue];
 }
@@ -54,21 +133,21 @@ const DEFAULT_VOICE: VoiceProfile = {
 };
 
 export function useIdeas() {
-  return useLocalStorage<Idea[]>('contentforge_ideas', []);
+  return useApiStorage<Idea[]>('contentforge_ideas', '/api/ideas', []);
 }
 
 export function useVoiceProfile() {
-  return useLocalStorage<VoiceProfile>('contentforge_voice', DEFAULT_VOICE);
+  return useApiVoiceProfile('contentforge_voice', '/api/voice', DEFAULT_VOICE);
 }
 
 export function useContentPieces() {
-  return useLocalStorage<ContentPiece[]>('contentforge_content', []);
+  return useApiStorage<ContentPiece[]>('contentforge_content', '/api/content', []);
 }
 
 export function useTrendingTopics() {
-  return useLocalStorage<TrendingTopic[]>('contentforge_trending', []);
+  return useApiStorage<TrendingTopic[]>('contentforge_trending', '/api/trending', []);
 }
 
 export function useAnalytics() {
-  return useLocalStorage<AnalyticsEntry[]>('contentforge_analytics', []);
+  return useApiStorage<AnalyticsEntry[]>('contentforge_analytics', '/api/analytics', []);
 }

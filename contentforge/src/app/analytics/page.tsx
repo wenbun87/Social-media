@@ -40,7 +40,7 @@ const INITIAL_FORM: MetricFormData = {
 };
 
 export default function AnalyticsPage() {
-  const [analytics, setAnalytics] = useAnalytics();
+  const [analytics, setAnalytics, refetchAnalytics] = useAnalytics();
   const [contentPieces] = useContentPieces();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<MetricFormData>(INITIAL_FORM);
@@ -111,6 +111,11 @@ export default function AnalyticsPage() {
     };
 
     setAnalytics((prev) => [...prev, newEntry]);
+    fetch('/api/analytics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newEntry),
+    }).then(() => refetchAnalytics()).catch(() => {});
     setForm(INITIAL_FORM);
     setShowForm(false);
   }
@@ -122,6 +127,7 @@ export default function AnalyticsPage() {
 
   function handleDelete(id: string) {
     setAnalytics((prev) => prev.filter((entry) => entry.id !== id));
+    fetch(`/api/analytics/${id}`, { method: 'DELETE' }).then(() => refetchAnalytics()).catch(() => {});
   }
 
   function handleNumberChange(field: keyof Omit<MetricFormData, 'contentPieceId'>, value: string) {

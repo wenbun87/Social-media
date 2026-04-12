@@ -71,7 +71,7 @@ function getScoreTextColor(score: number): string {
 }
 
 export default function TrendingPage() {
-  const [topics, setTopics] = useTrendingTopics();
+  const [topics, setTopics, refetchTopics] = useTrendingTopics();
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -152,21 +152,24 @@ export default function TrendingPage() {
     if (!form.title.trim()) return;
 
     if (editingId) {
+      const updated = {
+        title: form.title.trim(),
+        platform: form.platform,
+        category: form.category.trim(),
+        engagementScore: form.engagementScore,
+        velocity: form.velocity,
+        relatedKeywords: form.relatedKeywords,
+      };
       setTopics((prev) =>
         prev.map((t) =>
-          t.id === editingId
-            ? {
-                ...t,
-                title: form.title.trim(),
-                platform: form.platform,
-                category: form.category.trim(),
-                engagementScore: form.engagementScore,
-                velocity: form.velocity,
-                relatedKeywords: form.relatedKeywords,
-              }
-            : t
+          t.id === editingId ? { ...t, ...updated } : t
         )
       );
+      fetch(`/api/trending/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      }).then(() => refetchTopics()).catch(() => {});
     } else {
       const newTopic: TrendingTopic = {
         id: uuidv4(),
@@ -179,12 +182,18 @@ export default function TrendingPage() {
         createdAt: new Date().toISOString(),
       };
       setTopics((prev) => [newTopic, ...prev]);
+      fetch('/api/trending', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTopic),
+      }).then(() => refetchTopics()).catch(() => {});
     }
     closeForm();
   }
 
   function handleDelete(id: string) {
     setTopics((prev) => prev.filter((t) => t.id !== id));
+    fetch(`/api/trending/${id}`, { method: 'DELETE' }).then(() => refetchTopics()).catch(() => {});
   }
 
   return (

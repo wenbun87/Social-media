@@ -64,7 +64,7 @@ const emptyForm: FormData = {
 };
 
 export default function ContentStudioPage() {
-  const [pieces, setPieces] = useContentPieces();
+  const [pieces, setPieces, refetchPieces] = useContentPieces();
   const [ideas] = useIdeas();
 
   const [showForm, setShowForm] = useState(false);
@@ -143,24 +143,26 @@ export default function ContentStudioPage() {
     const now = new Date().toISOString();
 
     if (editingId) {
+      const updated = {
+        ideaId: form.ideaId,
+        title: form.title.trim(),
+        platform: form.platform,
+        format: form.format,
+        content: form.content,
+        status: form.status,
+        scheduledDate: form.status === 'scheduled' ? form.scheduledDate || null : null,
+        notes: form.notes,
+      };
       setPieces((prev) =>
         prev.map((p) =>
-          p.id === editingId
-            ? {
-                ...p,
-                ideaId: form.ideaId,
-                title: form.title.trim(),
-                platform: form.platform,
-                format: form.format,
-                content: form.content,
-                status: form.status,
-                scheduledDate: form.status === 'scheduled' ? form.scheduledDate || null : null,
-                notes: form.notes,
-                updatedAt: now,
-              }
-            : p,
+          p.id === editingId ? { ...p, ...updated, updatedAt: now } : p,
         ),
       );
+      fetch(`/api/content/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      }).then(() => refetchPieces()).catch(() => {});
     } else {
       const newPiece: ContentPiece = {
         id: uuidv4(),
@@ -176,6 +178,11 @@ export default function ContentStudioPage() {
         updatedAt: now,
       };
       setPieces((prev) => [newPiece, ...prev]);
+      fetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newPiece),
+      }).then(() => refetchPieces()).catch(() => {});
     }
 
     closeForm();
@@ -183,12 +190,18 @@ export default function ContentStudioPage() {
 
   function handleDelete(id: string) {
     setPieces((prev) => prev.filter((p) => p.id !== id));
+    fetch(`/api/content/${id}`, { method: 'DELETE' }).then(() => refetchPieces()).catch(() => {});
     setDeleteConfirmId(null);
     if (expandedId === id) setExpandedId(null);
   }
 
   function handleStatusChange(id: string, status: ContentStatus) {
     const now = new Date().toISOString();
+    fetch(`/api/content/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...pieces.find((p) => p.id === id), status, scheduledDate: status === 'scheduled' ? pieces.find((p) => p.id === id)?.scheduledDate : null }),
+    }).then(() => refetchPieces()).catch(() => {});
     setPieces((prev) =>
       prev.map((p) =>
         p.id === id
