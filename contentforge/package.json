@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:cloudflare": "npx opennextjs-cloudflare build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -18,6 +19,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.19.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

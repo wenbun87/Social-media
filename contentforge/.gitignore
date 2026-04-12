@@ -42,3 +42,6 @@ next-env.d.ts
 
 # local database
 local.db
+
+# cloudflare build output
+.open-next/
