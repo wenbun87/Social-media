@@ -1,0 +1,22 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/analytics/page": "app/analytics/page.js",
+  "/api/analytics/[id]/route": "app/api/analytics/[id]/route.js",
+  "/api/analytics/route": "app/api/analytics/route.js",
+  "/api/content/[id]/route": "app/api/content/[id]/route.js",
+  "/api/content/route": "app/api/content/route.js",
+  "/api/ideas/[id]/route": "app/api/ideas/[id]/route.js",
+  "/api/ideas/route": "app/api/ideas/route.js",
+  "/api/init/route": "app/api/init/route.js",
+  "/api/trending/[id]/route": "app/api/trending/[id]/route.js",
+  "/api/trending/route": "app/api/trending/route.js",
+  "/api/voice/route": "app/api/voice/route.js",
+  "/calendar/page": "app/calendar/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/ideas/page": "app/ideas/page.js",
+  "/page": "app/page.js",
+  "/transform/page": "app/transform/page.js",
+  "/trending/page": "app/trending/page.js",
+  "/voice/page": "app/voice/page.js"
+}
