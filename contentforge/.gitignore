@@ -43,4 +43,6 @@ next-env.d.ts
 # local database
 local.db
 
+# build artifacts
+.open-next/
 
