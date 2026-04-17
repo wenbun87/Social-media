@@ -59,12 +59,7 @@ const emptyForm: FormData = {
 };
 
 export default function ContentStudioPage() {
-<<<<<<< Updated upstream
-  const [pieces, setPieces] = useContentPieces();
-  const [ideas] = useIdeas();
-=======
   const [pieces, setPieces, refetchPieces] = useContentPieces();
->>>>>>> Stashed changes
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -137,25 +132,6 @@ export default function ContentStudioPage() {
     const now = new Date().toISOString();
 
     if (editingId) {
-<<<<<<< Updated upstream
-      setPieces((prev) =>
-        prev.map((p) =>
-          p.id === editingId
-            ? {
-                ...p,
-                ideaId: form.ideaId,
-                title: form.title.trim(),
-                platform: form.platform,
-                format: form.format,
-                content: form.content,
-                status: form.status,
-                scheduledDate: form.status === 'scheduled' ? form.scheduledDate || null : null,
-                notes: form.notes,
-                updatedAt: now,
-              }
-            : p,
-        ),
-=======
       const updated = {
         title: form.title.trim(),
         platform: form.platform,
@@ -169,8 +145,12 @@ export default function ContentStudioPage() {
         prev.map((p) =>
           p.id === editingId ? { ...p, ...updated, updatedAt: now } : p
         )
->>>>>>> Stashed changes
       );
+      fetch(`/api/content/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      }).then(() => refetchPieces()).catch(() => {});
     } else {
       const newPiece: ContentPiece = {
         id: uuidv4(),
@@ -185,6 +165,11 @@ export default function ContentStudioPage() {
         updatedAt: now,
       };
       setPieces((prev) => [newPiece, ...prev]);
+      fetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newPiece),
+      }).then(() => refetchPieces()).catch(() => {});
     }
 
     closeForm();
@@ -192,14 +177,13 @@ export default function ContentStudioPage() {
 
   function handleDelete(id: string) {
     setPieces((prev) => prev.filter((p) => p.id !== id));
+    fetch(`/api/content/${id}`, { method: 'DELETE' }).then(() => refetchPieces()).catch(() => {});
     setDeleteConfirmId(null);
     if (expandedId === id) setExpandedId(null);
   }
 
   function handleStatusChange(id: string, status: ContentStatus) {
     const now = new Date().toISOString();
-<<<<<<< Updated upstream
-=======
     const piece = pieces.find((p) => p.id === id);
     if (!piece) return;
     fetch(`/api/content/${id}`, {
@@ -207,7 +191,6 @@ export default function ContentStudioPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...piece, status, scheduledDate: status === 'scheduled' ? piece.scheduledDate : null }),
     }).then(() => refetchPieces()).catch(() => {});
->>>>>>> Stashed changes
     setPieces((prev) =>
       prev.map((p) =>
         p.id === id
