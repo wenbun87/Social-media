@@ -13,10 +13,8 @@ export async function initializeDatabase() {
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,
       content TEXT NOT NULL DEFAULT '',
-      tags TEXT NOT NULL DEFAULT '[]',
-      rating INTEGER NOT NULL DEFAULT 3,
+      format TEXT NOT NULL DEFAULT '[]',
       platforms TEXT NOT NULL DEFAULT '[]',
-      status TEXT NOT NULL DEFAULT 'raw',
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -36,7 +34,6 @@ export async function initializeDatabase() {
 
     CREATE TABLE IF NOT EXISTS content_pieces (
       id TEXT PRIMARY KEY,
-      idea_id TEXT,
       title TEXT NOT NULL,
       platform TEXT NOT NULL,
       format TEXT NOT NULL,
@@ -58,17 +55,15 @@ export async function initializeDatabase() {
       related_keywords TEXT NOT NULL DEFAULT '[]',
       created_at TEXT NOT NULL
     );
-
-    CREATE TABLE IF NOT EXISTS analytics_entries (
-      id TEXT PRIMARY KEY,
-      content_piece_id TEXT NOT NULL,
-      impressions INTEGER NOT NULL DEFAULT 0,
-      engagement INTEGER NOT NULL DEFAULT 0,
-      clicks INTEGER NOT NULL DEFAULT 0,
-      shares INTEGER NOT NULL DEFAULT 0,
-      saves INTEGER NOT NULL DEFAULT 0,
-      comments INTEGER NOT NULL DEFAULT 0,
-      recorded_at TEXT NOT NULL
-    );
   `);
+
+  // Migrate existing ideas table: add format column if missing
+  try {
+    await db.execute(`ALTER TABLE ideas ADD COLUMN format TEXT NOT NULL DEFAULT '[]'`);
+  } catch {
+    // Column already exists
+  }
+
+  // Migrate existing content_pieces: add title column if it was previously named differently
+  // (no-op if already correct)
 }

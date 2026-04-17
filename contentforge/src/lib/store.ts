@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Idea, VoiceProfile, ContentPiece, TrendingTopic, AnalyticsEntry } from './types';
+import type { Idea, VoiceProfile, ContentPiece, TrendingTopic } from './types';
 
 function getFromStorage<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
@@ -22,7 +22,6 @@ function saveToStorage<T>(key: string, value: T): void {
   }
 }
 
-// Hook that syncs with API and uses localStorage as cache
 function useApiStorage<T>(
   cacheKey: string,
   apiPath: string,
@@ -33,7 +32,6 @@ function useApiStorage<T>(
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  // Load from localStorage immediately, then fetch from API
   useEffect(() => {
     const cached = getFromStorage(cacheKey, initialValue);
     setState(cached);
@@ -45,9 +43,7 @@ function useApiStorage<T>(
         setState(data);
         saveToStorage(cacheKey, data);
       })
-      .catch(() => {
-        // API unavailable, keep using cached data
-      });
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cacheKey, apiPath]);
 
@@ -78,7 +74,6 @@ function useApiStorage<T>(
   return [hydrated ? state : initialValue, setValue, refetch];
 }
 
-// Voice profile uses a single-object API (GET/PUT) instead of array CRUD
 function useApiVoiceProfile(
   cacheKey: string,
   apiPath: string,
@@ -107,7 +102,6 @@ function useApiVoiceProfile(
       setState((prev) => {
         const next = typeof value === 'function' ? value(prev) : value;
         saveToStorage(cacheKey, next);
-        // Sync to API in background
         fetch(apiPath, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -146,8 +140,4 @@ export function useContentPieces() {
 
 export function useTrendingTopics() {
   return useApiStorage<TrendingTopic[]>('contentforge_trending', '/api/trending', []);
-}
-
-export function useAnalytics() {
-  return useApiStorage<AnalyticsEntry[]>('contentforge_analytics', '/api/analytics', []);
 }

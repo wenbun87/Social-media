@@ -9,10 +9,8 @@ export async function GET() {
       id: row.id,
       title: row.title,
       content: row.content,
-      tags: JSON.parse(row.tags as string),
-      rating: row.rating,
-      platforms: JSON.parse(row.platforms as string),
-      status: row.status,
+      format: JSON.parse((row.format as string) || '[]'),
+      platforms: JSON.parse((row.platforms as string) || '[]'),
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     }));
@@ -26,11 +24,19 @@ export async function POST(request: NextRequest) {
   try {
     await initializeDatabase();
     const body = await request.json();
-    const { id, title, content, tags, rating, platforms, status, createdAt, updatedAt } = body;
+    const { id, title, content, format, platforms, createdAt, updatedAt } = body;
     await db.execute({
-      sql: `INSERT INTO ideas (id, title, content, tags, rating, platforms, status, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      args: [id, title, content || '', JSON.stringify(tags || []), rating || 3, JSON.stringify(platforms || []), status || 'raw', createdAt || new Date().toISOString(), updatedAt || new Date().toISOString()],
+      sql: `INSERT INTO ideas (id, title, content, format, platforms, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        id,
+        title,
+        content || '',
+        JSON.stringify(format || []),
+        JSON.stringify(platforms || []),
+        createdAt || new Date().toISOString(),
+        updatedAt || new Date().toISOString(),
+      ],
     });
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch (error) {

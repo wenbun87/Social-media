@@ -13,7 +13,6 @@ import {
   Edit3,
   Trash2,
   Calendar,
-  Lightbulb,
   Clock,
   CheckCircle,
   FileText,
@@ -21,7 +20,7 @@ import {
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
-import { useContentPieces, useIdeas } from '@/lib/store';
+import { useContentPieces } from '@/lib/store';
 import type {
   ContentPiece,
   ContentStatus,
@@ -31,18 +30,15 @@ import type {
 import { PLATFORM_FORMATS, PLATFORM_LABELS } from '@/lib/types';
 
 const ALL_PLATFORMS = Object.keys(PLATFORM_LABELS) as Platform[];
-const ALL_STATUSES: ContentStatus[] = ['draft', 'review', 'scheduled', 'posted', 'repurposed'];
+const ALL_STATUSES: ContentStatus[] = ['draft', 'scheduled', 'posted'];
 
 const STATUS_CONFIG: Record<ContentStatus, { label: string; colorClass: string; bgClass: string }> = {
   draft: { label: 'Draft', colorClass: 'text-text-muted', bgClass: 'bg-card-hover' },
-  review: { label: 'Review', colorClass: 'text-warning', bgClass: 'bg-warning/15' },
   scheduled: { label: 'Scheduled', colorClass: 'text-accent', bgClass: 'bg-accent/15' },
   posted: { label: 'Posted', colorClass: 'text-success', bgClass: 'bg-success/15' },
-  repurposed: { label: 'Repurposed', colorClass: 'text-primary-light', bgClass: 'bg-primary/15' },
 };
 
 interface FormData {
-  ideaId: string | null;
   title: string;
   platform: Platform;
   format: ContentFormat;
@@ -53,10 +49,9 @@ interface FormData {
 }
 
 const emptyForm: FormData = {
-  ideaId: null,
   title: '',
-  platform: 'twitter',
-  format: 'tweet',
+  platform: 'instagram',
+  format: 'post',
   content: '',
   status: 'draft',
   scheduledDate: '',
@@ -65,7 +60,6 @@ const emptyForm: FormData = {
 
 export default function ContentStudioPage() {
   const [pieces, setPieces, refetchPieces] = useContentPieces();
-  const [ideas] = useIdeas();
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -75,31 +69,28 @@ export default function ContentStudioPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ContentStatus | 'all'>('all');
   const [platformFilter, setPlatformFilter] = useState<Platform | 'all'>('all');
 
-  // Derived: available formats for selected platform
   const availableFormats = PLATFORM_FORMATS[form.platform];
 
-  // Filter pieces
   const filteredPieces = useMemo(() => {
     return pieces.filter((piece) => {
       if (statusFilter !== 'all' && piece.status !== statusFilter) return false;
       if (platformFilter !== 'all' && piece.platform !== platformFilter) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        const matchesTitle = piece.title.toLowerCase().includes(q);
-        const matchesContent = piece.content.toLowerCase().includes(q);
-        const matchesNotes = piece.notes.toLowerCase().includes(q);
-        if (!matchesTitle && !matchesContent && !matchesNotes) return false;
+        if (
+          !piece.title.toLowerCase().includes(q) &&
+          !piece.content.toLowerCase().includes(q) &&
+          !piece.notes.toLowerCase().includes(q)
+        ) return false;
       }
       return true;
     });
   }, [pieces, statusFilter, platformFilter, searchQuery]);
 
-  // Handlers
   function openNewForm() {
     setForm(emptyForm);
     setEditingId(null);
@@ -108,7 +99,6 @@ export default function ContentStudioPage() {
 
   function openEditForm(piece: ContentPiece) {
     setForm({
-      ideaId: piece.ideaId,
       title: piece.title,
       platform: piece.platform,
       format: piece.format,
@@ -139,12 +129,10 @@ export default function ContentStudioPage() {
 
   function handleSave() {
     if (!form.title.trim()) return;
-
     const now = new Date().toISOString();
 
     if (editingId) {
       const updated = {
-        ideaId: form.ideaId,
         title: form.title.trim(),
         platform: form.platform,
         format: form.format,
@@ -155,8 +143,8 @@ export default function ContentStudioPage() {
       };
       setPieces((prev) =>
         prev.map((p) =>
-          p.id === editingId ? { ...p, ...updated, updatedAt: now } : p,
-        ),
+          p.id === editingId ? { ...p, ...updated, updatedAt: now } : p
+        )
       );
       fetch(`/api/content/${editingId}`, {
         method: 'PUT',
@@ -166,7 +154,6 @@ export default function ContentStudioPage() {
     } else {
       const newPiece: ContentPiece = {
         id: uuidv4(),
-        ideaId: form.ideaId,
         title: form.title.trim(),
         platform: form.platform,
         format: form.format,
@@ -197,22 +184,19 @@ export default function ContentStudioPage() {
 
   function handleStatusChange(id: string, status: ContentStatus) {
     const now = new Date().toISOString();
+    const piece = pieces.find((p) => p.id === id);
+    if (!piece) return;
     fetch(`/api/content/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...pieces.find((p) => p.id === id), status, scheduledDate: status === 'scheduled' ? pieces.find((p) => p.id === id)?.scheduledDate : null }),
+      body: JSON.stringify({ ...piece, status, scheduledDate: status === 'scheduled' ? piece.scheduledDate : null }),
     }).then(() => refetchPieces()).catch(() => {});
     setPieces((prev) =>
       prev.map((p) =>
         p.id === id
-          ? {
-              ...p,
-              status,
-              scheduledDate: status === 'scheduled' ? p.scheduledDate : null,
-              updatedAt: now,
-            }
-          : p,
-      ),
+          ? { ...p, status, scheduledDate: status === 'scheduled' ? p.scheduledDate : null, updatedAt: now }
+          : p
+      )
     );
   }
 
@@ -226,19 +210,12 @@ export default function ContentStudioPage() {
     }
   }
 
-  function getIdeaTitle(ideaId: string | null): string | null {
-    if (!ideaId) return null;
-    const idea = ideas.find((i) => i.id === ideaId);
-    return idea ? idea.title : null;
-  }
-
-  // Character count helpers
   const charCount = form.content.length;
   const isTwitter = form.platform === 'twitter';
   const twitterOverLimit = isTwitter && charCount > 280;
 
   return (
-    <div className="min-h-screen bg-bg-dark">
+    <div className="min-h-screen">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
@@ -277,30 +254,6 @@ export default function ContentStudioPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            {/* Linked Idea */}
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                Linked Idea
-              </label>
-              <select
-                value={form.ideaId ?? ''}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    ideaId: e.target.value || null,
-                  }))
-                }
-                className="w-full"
-              >
-                <option value="">None</option>
-                {ideas.map((idea) => (
-                  <option key={idea.id} value={idea.id}>
-                    {idea.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             {/* Title */}
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">
@@ -502,7 +455,7 @@ export default function ContentStudioPage() {
           <h3 className="text-lg font-semibold text-text-primary mb-1">No content found</h3>
           <p className="text-sm text-text-muted max-w-md">
             {pieces.length === 0
-              ? 'Create your first content piece to get started.'
+              ? 'Create your first content piece or send an idea from the Idea Bank.'
               : 'No content matches your current filters.'}
           </p>
         </div>
@@ -511,7 +464,6 @@ export default function ContentStudioPage() {
           {filteredPieces.map((piece) => {
             const isExpanded = expandedId === piece.id;
             const statusCfg = STATUS_CONFIG[piece.status];
-            const linkedIdea = getIdeaTitle(piece.ideaId);
 
             return (
               <div
@@ -565,14 +517,6 @@ export default function ContentStudioPage() {
                         <p className="text-sm text-text-muted italic">No content body yet.</p>
                       )}
                     </div>
-
-                    {/* Linked idea */}
-                    {linkedIdea && (
-                      <div className="mb-3 flex items-center gap-2 text-xs text-text-muted">
-                        <Lightbulb className="w-3.5 h-3.5 text-warning" />
-                        Linked idea: <span className="text-text-secondary">{linkedIdea}</span>
-                      </div>
-                    )}
 
                     {/* Notes */}
                     {piece.notes && (
