@@ -5,22 +5,20 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Lightbulb,
-  Mic,
+  BookUser,
   PenTool,
   CalendarDays,
   TrendingUp,
-  BarChart3,
   Zap,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/voice', label: 'Brand Profile', icon: BookUser },
   { href: '/ideas', label: 'Idea Bank', icon: Lightbulb },
-  { href: '/voice', label: 'Voice Profile', icon: Mic },
   { href: '/transform', label: 'Content Studio', icon: PenTool },
   { href: '/calendar', label: 'Planner', icon: CalendarDays },
   { href: '/trending', label: 'Trending', icon: TrendingUp },
-  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
 ];
 
 export default function Sidebar() {

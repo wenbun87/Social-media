@@ -1,114 +1,60 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from 'react';
-import { useIdeas } from '@/lib/store';
-import type { Idea, IdeaStatus, Platform } from '@/lib/types';
-import { PLATFORM_LABELS } from '@/lib/types';
+import { useState, useMemo } from 'react';
+import { useIdeas, useContentPieces } from '@/lib/store';
+import type { Idea, IdeaFormat, Platform, ContentPiece } from '@/lib/types';
+import { PLATFORM_LABELS, IDEA_FORMAT_OPTIONS } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
 import {
   Lightbulb,
   Plus,
   Search,
-  Star,
   Pencil,
   Trash2,
   X,
   ChevronDown,
+  ArrowRight,
 } from 'lucide-react';
-
-const TAG_SUGGESTIONS = [
-  'marketing',
-  'personal',
-  'tutorial',
-  'tips',
-  'story',
-  'behind-the-scenes',
-  'educational',
-  'trending',
-  'collaboration',
-  'product',
-];
 
 const ALL_PLATFORMS = Object.keys(PLATFORM_LABELS) as Platform[];
 
-const STATUS_OPTIONS: { value: IdeaStatus; label: string }[] = [
-  { value: 'raw', label: 'Raw' },
-  { value: 'developing', label: 'Developing' },
-  { value: 'ready', label: 'Ready' },
-  { value: 'transformed', label: 'Transformed' },
-];
-
-const STATUS_COLORS: Record<IdeaStatus, string> = {
-  raw: 'bg-gray-600/20 text-gray-400',
-  developing: 'bg-warning/20 text-warning',
-  ready: 'bg-accent/20 text-accent',
-  transformed: 'bg-success/20 text-success',
-};
-
-type SortOption = 'newest' | 'oldest' | 'highest-rated';
+type SortOption = 'newest' | 'oldest';
 
 interface IdeaFormData {
   title: string;
   content: string;
-  tags: string[];
-  rating: number;
+  format: IdeaFormat[];
   platforms: Platform[];
-  status: IdeaStatus;
 }
 
 const EMPTY_FORM: IdeaFormData = {
   title: '',
   content: '',
-  tags: [],
-  rating: 3,
+  format: [],
   platforms: [],
-  status: 'raw',
 };
 
 export default function IdeasPage() {
+<<<<<<< Updated upstream
   const [ideas, setIdeas] = useIdeas();
+=======
+  const [ideas, setIdeas, refetchIdeas] = useIdeas();
+  const [, setPieces, refetchPieces] = useContentPieces();
+>>>>>>> Stashed changes
 
-  // Search and filter state
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | IdeaStatus>('all');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
 
-  // Modal state
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<IdeaFormData>(EMPTY_FORM);
 
-  // Tag input state
-  const [tagInput, setTagInput] = useState('');
-  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
-  const tagInputRef = useRef<HTMLInputElement>(null);
-  const tagDropdownRef = useRef<HTMLDivElement>(null);
-
-  // Delete confirmation
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [sentToStudioId, setSentToStudioId] = useState<string | null>(null);
 
-  // Close tag suggestions on outside click
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (
-        tagDropdownRef.current &&
-        !tagDropdownRef.current.contains(e.target as Node) &&
-        tagInputRef.current &&
-        !tagInputRef.current.contains(e.target as Node)
-      ) {
-        setShowTagSuggestions(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Filtered and sorted ideas
   const filteredIdeas = useMemo(() => {
     let result = [...ideas];
-
-    // Text search
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -117,39 +63,17 @@ export default function IdeasPage() {
           idea.content.toLowerCase().includes(q)
       );
     }
-
-    // Status filter
-    if (statusFilter !== 'all') {
-      result = result.filter((idea) => idea.status === statusFilter);
-    }
-
-    // Sort
-    switch (sortBy) {
-      case 'newest':
-        result.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        break;
-      case 'oldest':
-        result.sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
-        break;
-      case 'highest-rated':
-        result.sort((a, b) => b.rating - a.rating);
-        break;
-    }
-
+    result.sort((a, b) =>
+      sortBy === 'newest'
+        ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
     return result;
-  }, [ideas, searchQuery, statusFilter, sortBy]);
+  }, [ideas, searchQuery, sortBy]);
 
-  // CRUD operations
   function openNewIdea() {
     setEditingId(null);
     setForm(EMPTY_FORM);
-    setTagInput('');
     setShowModal(true);
   }
 
@@ -158,26 +82,20 @@ export default function IdeasPage() {
     setForm({
       title: idea.title,
       content: idea.content,
-      tags: [...idea.tags],
-      rating: idea.rating,
+      format: [...idea.format],
       platforms: [...idea.platforms],
-      status: idea.status,
     });
-    setTagInput('');
     setShowModal(true);
   }
 
   function handleSave() {
     if (!form.title.trim()) return;
-
     const now = new Date().toISOString();
 
     if (editingId) {
       setIdeas((prev) =>
         prev.map((idea) =>
-          idea.id === editingId
-            ? { ...idea, ...form, updatedAt: now }
-            : idea
+          idea.id === editingId ? { ...idea, ...form, updatedAt: now } : idea
         )
       );
     } else {
@@ -206,20 +124,12 @@ export default function IdeasPage() {
     setForm(EMPTY_FORM);
   }
 
-  // Tag helpers
-  function addTag(tag: string) {
-    const cleaned = tag.trim().toLowerCase();
-    if (cleaned && !form.tags.includes(cleaned)) {
-      setForm((prev) => ({ ...prev, tags: [...prev.tags, cleaned] }));
-    }
-    setTagInput('');
-    setShowTagSuggestions(false);
-  }
-
-  function removeTag(tag: string) {
+  function toggleFormat(fmt: IdeaFormat) {
     setForm((prev) => ({
       ...prev,
-      tags: prev.tags.filter((t) => t !== tag),
+      format: prev.format.includes(fmt)
+        ? prev.format.filter((f) => f !== fmt)
+        : [...prev.format, fmt],
     }));
   }
 
@@ -232,11 +142,29 @@ export default function IdeasPage() {
     }));
   }
 
-  const filteredTagSuggestions = TAG_SUGGESTIONS.filter(
-    (t) =>
-      !form.tags.includes(t) &&
-      t.toLowerCase().includes(tagInput.toLowerCase())
-  );
+  function handleSendToStudio(idea: Idea) {
+    const now = new Date().toISOString();
+    const newPiece: ContentPiece = {
+      id: uuidv4(),
+      title: idea.title,
+      platform: idea.platforms[0] ?? 'instagram',
+      format: 'post',
+      content: idea.content,
+      status: 'draft',
+      scheduledDate: null,
+      notes: '',
+      createdAt: now,
+      updatedAt: now,
+    };
+    setPieces((prev) => [newPiece, ...prev]);
+    fetch('/api/content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newPiece),
+    }).then(() => refetchPieces()).catch(() => {});
+    setSentToStudioId(idea.id);
+    setTimeout(() => setSentToStudioId(null), 2500);
+  }
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -262,7 +190,7 @@ export default function IdeasPage() {
         </button>
       </div>
 
-      {/* Search and Filters */}
+      {/* Search and Sort */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
@@ -276,30 +204,12 @@ export default function IdeasPage() {
         </div>
         <div className="relative">
           <select
-            value={statusFilter}
-            onChange={(e) =>
-              setStatusFilter(e.target.value as 'all' | IdeaStatus)
-            }
-            className="appearance-none pr-9 py-2.5 text-sm min-w-[150px]"
-          >
-            <option value="all">All Statuses</option>
-            {STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
-        </div>
-        <div className="relative">
-          <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
             className="appearance-none pr-9 py-2.5 text-sm min-w-[150px]"
           >
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
-            <option value="highest-rated">Highest Rated</option>
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
         </div>
@@ -313,7 +223,7 @@ export default function IdeasPage() {
           <p className="text-text-muted text-sm">
             {ideas.length === 0
               ? 'Click "New Idea" to capture your first idea.'
-              : 'Try adjusting your search or filters.'}
+              : 'Try adjusting your search.'}
           </p>
         </div>
       ) : (
@@ -321,18 +231,13 @@ export default function IdeasPage() {
           {filteredIdeas.map((idea) => (
             <div
               key={idea.id}
-              className="bg-card-dark border border-border rounded-xl p-5 hover:bg-card-hover transition-colors group"
+              className="bg-card-dark border border-border rounded-xl p-5 hover:bg-card-hover transition-colors"
             >
               {/* Card Header */}
-              <div className="flex items-start justify-between gap-3 mb-3">
+              <div className="mb-3">
                 <h3 className="font-semibold text-text-primary text-base leading-snug">
                   {idea.title}
                 </h3>
-                <span
-                  className={`shrink-0 px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[idea.status]}`}
-                >
-                  {idea.status.charAt(0).toUpperCase() + idea.status.slice(1)}
-                </span>
               </div>
 
               {/* Content Preview */}
@@ -342,33 +247,19 @@ export default function IdeasPage() {
                 </p>
               )}
 
-              {/* Tags */}
-              {idea.tags.length > 0 && (
+              {/* Formats */}
+              {idea.format.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mb-3">
-                  {idea.tags.map((tag) => (
+                  {idea.format.map((fmt) => (
                     <span
-                      key={tag}
-                      className="px-2 py-0.5 bg-primary/15 text-primary-light rounded-full text-xs font-medium"
+                      key={fmt}
+                      className="px-2 py-0.5 bg-primary/15 text-primary-light rounded-full text-xs font-medium capitalize"
                     >
-                      {tag}
+                      {fmt}
                     </span>
                   ))}
                 </div>
               )}
-
-              {/* Rating */}
-              <div className="flex items-center gap-0.5 mb-3">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star
-                    key={s}
-                    className={`w-4 h-4 ${
-                      s <= idea.rating
-                        ? 'fill-yellow-400 text-yellow-400'
-                        : 'text-gray-600'
-                    }`}
-                  />
-                ))}
-              </div>
 
               {/* Platforms */}
               {idea.platforms.length > 0 && (
@@ -390,6 +281,20 @@ export default function IdeasPage() {
                   {format(new Date(idea.createdAt), 'MMM d, yyyy')}
                 </span>
                 <div className="flex items-center gap-1">
+                  {sentToStudioId === idea.id ? (
+                    <span className="px-2.5 py-1 text-xs font-medium text-success bg-success/15 rounded-md">
+                      Sent to Studio!
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => handleSendToStudio(idea)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium text-primary-light hover:bg-primary/15 transition-colors"
+                      title="Send to Content Studio"
+                    >
+                      <ArrowRight className="w-3.5 h-3.5" />
+                      Send to Studio
+                    </button>
+                  )}
                   <button
                     onClick={() => openEditIdea(idea)}
                     className="p-1.5 rounded-md text-text-muted hover:text-primary-light hover:bg-primary/15 transition-colors"
@@ -431,13 +336,10 @@ export default function IdeasPage() {
       {/* Modal Overlay */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={handleCancel}
           />
-
-          {/* Modal Content */}
           <div className="relative bg-card-dark border border-border rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-card-dark rounded-t-2xl z-10">
@@ -462,9 +364,7 @@ export default function IdeasPage() {
                 <input
                   type="text"
                   value={form.title}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, title: e.target.value }))
-                  }
+                  onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
                   placeholder="Give your idea a title..."
                   className="w-full"
                 />
@@ -473,115 +373,61 @@ export default function IdeasPage() {
               {/* Content */}
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Content
+                  Description
                 </label>
                 <textarea
                   value={form.content}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, content: e.target.value }))
-                  }
+                  onChange={(e) => setForm((prev) => ({ ...prev, content: e.target.value }))}
                   placeholder="Describe your idea in detail..."
                   rows={4}
                   className="w-full resize-y"
                 />
               </div>
 
-              {/* Tags */}
+              {/* Format */}
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Tags
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Format
                 </label>
-                {/* Selected Tags */}
-                {form.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {form.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="flex items-center gap-1 px-2.5 py-1 bg-primary/15 text-primary-light rounded-full text-xs font-medium"
-                      >
-                        {tag}
-                        <button
-                          onClick={() => removeTag(tag)}
-                          className="hover:text-white transition-colors"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {/* Tag Input */}
-                <div className="relative">
-                  <input
-                    ref={tagInputRef}
-                    type="text"
-                    value={tagInput}
-                    onChange={(e) => {
-                      setTagInput(e.target.value);
-                      setShowTagSuggestions(true);
-                    }}
-                    onFocus={() => setShowTagSuggestions(true)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (tagInput.trim()) addTag(tagInput);
-                      }
-                    }}
-                    placeholder="Type to add tags..."
-                    className="w-full"
-                  />
-                  {showTagSuggestions && filteredTagSuggestions.length > 0 && (
-                    <div
-                      ref={tagDropdownRef}
-                      className="absolute z-20 top-full left-0 right-0 mt-1 bg-card-dark border border-border rounded-lg shadow-xl max-h-40 overflow-y-auto"
-                    >
-                      {filteredTagSuggestions.map((tag) => (
-                        <button
-                          key={tag}
-                          onClick={() => addTag(tag)}
-                          className="w-full text-left px-3 py-2 text-sm text-text-secondary hover:bg-card-hover hover:text-text-primary transition-colors"
-                        >
-                          {tag}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Rating */}
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Rating
-                </label>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() =>
-                        setForm((prev) => ({ ...prev, rating: s }))
-                      }
-                      className="p-0.5 transition-transform hover:scale-110"
-                    >
-                      <Star
-                        className={`w-6 h-6 ${
-                          s <= form.rating
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-gray-600 hover:text-gray-400'
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {IDEA_FORMAT_OPTIONS.map((fmt) => {
+                    const checked = form.format.includes(fmt);
+                    return (
+                      <label
+                        key={fmt}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors text-sm capitalize ${
+                          checked
+                            ? 'border-primary bg-primary/10 text-primary-light'
+                            : 'border-border text-text-secondary hover:bg-card-hover'
                         }`}
-                      />
-                    </button>
-                  ))}
-                  <span className="ml-2 text-sm text-text-muted">
-                    {form.rating}/5
-                  </span>
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleFormat(fmt)}
+                          className="sr-only"
+                        />
+                        <div
+                          className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${
+                            checked ? 'border-primary bg-primary' : 'border-border'
+                          }`}
+                        >
+                          {checked && (
+                            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        {fmt}
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Target Platforms */}
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Target Platforms
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -593,7 +439,7 @@ export default function IdeasPage() {
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors text-sm ${
                           checked
                             ? 'border-accent bg-accent/10 text-accent-light'
-                            : 'border-border text-text-secondary hover:border-border hover:bg-card-hover'
+                            : 'border-border text-text-secondary hover:bg-card-hover'
                         }`}
                       >
                         <input
@@ -604,24 +450,12 @@ export default function IdeasPage() {
                         />
                         <div
                           className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${
-                            checked
-                              ? 'border-accent bg-accent'
-                              : 'border-gray-600'
+                            checked ? 'border-accent bg-accent' : 'border-border'
                           }`}
                         >
                           {checked && (
-                            <svg
-                              className="w-2.5 h-2.5 text-white"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={3}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M5 13l4 4L19 7"
-                              />
+                            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                           )}
                         </div>
@@ -629,32 +463,6 @@ export default function IdeasPage() {
                       </label>
                     );
                   })}
-                </div>
-              </div>
-
-              {/* Status */}
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Status
-                </label>
-                <div className="relative">
-                  <select
-                    value={form.status}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        status: e.target.value as IdeaStatus,
-                      }))
-                    }
-                    className="w-full appearance-none pr-9"
-                  >
-                    {STATUS_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
                 </div>
               </div>
             </div>

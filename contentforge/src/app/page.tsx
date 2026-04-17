@@ -11,24 +11,14 @@ import {
   Sparkles,
   Calendar,
   ArrowRight,
-  Star,
 } from 'lucide-react';
-import { useIdeas, useContentPieces, useAnalytics } from '@/lib/store';
-import type { IdeaStatus, ContentStatus, Platform } from '@/lib/types';
-
-const STATUS_COLORS: Record<IdeaStatus, string> = {
-  raw: 'bg-text-muted/20 text-text-muted',
-  developing: 'bg-warning/20 text-warning',
-  ready: 'bg-accent/20 text-accent',
-  transformed: 'bg-success/20 text-success',
-};
+import { useIdeas, useContentPieces } from '@/lib/store';
+import type { ContentStatus, Platform } from '@/lib/types';
 
 const CONTENT_STATUS_COLORS: Record<ContentStatus, string> = {
   draft: 'bg-text-muted/20 text-text-muted',
-  review: 'bg-warning/20 text-warning',
   scheduled: 'bg-accent/20 text-accent',
   posted: 'bg-success/20 text-success',
-  repurposed: 'bg-primary/20 text-primary-light',
 };
 
 const PLATFORM_COLORS: Record<Platform, string> = {
@@ -45,7 +35,6 @@ const PLATFORM_COLORS: Record<Platform, string> = {
 export default function DashboardPage() {
   const [ideas] = useIdeas();
   const [content] = useContentPieces();
-  useAnalytics();
 
   const scheduledCount = content.filter((c) => c.status === 'scheduled').length;
   const postedCount = content.filter((c) => c.status === 'posted').length;
@@ -201,25 +190,18 @@ export default function DashboardPage() {
                       <p className="text-sm font-medium text-text-primary truncate">
                         {idea.title}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span
-                          className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full capitalize ${STATUS_COLORS[idea.status]}`}
-                        >
-                          {idea.status}
-                        </span>
-                        <div className="flex items-center gap-0.5">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-3 h-3 ${
-                                i < idea.rating
-                                  ? 'text-warning fill-warning'
-                                  : 'text-text-muted'
-                              }`}
-                            />
+                      {idea.format.length > 0 && (
+                        <div className="flex items-center gap-1 mt-1 flex-wrap">
+                          {idea.format.slice(0, 3).map((fmt) => (
+                            <span
+                              key={fmt}
+                              className="inline-block px-2 py-0.5 text-xs font-medium rounded-full capitalize bg-primary/15 text-primary-light"
+                            >
+                              {fmt}
+                            </span>
                           ))}
                         </div>
-                      </div>
+                      )}
                     </div>
                     <span className="text-xs text-text-muted whitespace-nowrap">
                       {format(new Date(idea.createdAt), 'MMM d, yyyy')}

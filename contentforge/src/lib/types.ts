@@ -1,8 +1,8 @@
 export type Platform = 'twitter' | 'instagram' | 'linkedin' | 'tiktok' | 'youtube' | 'facebook' | 'threads' | 'blog';
 
-export type IdeaStatus = 'raw' | 'developing' | 'ready' | 'transformed';
+export type IdeaFormat = 'reel' | 'carousel' | 'post' | 'short film' | 'long film' | 'article';
 
-export type ContentStatus = 'draft' | 'review' | 'scheduled' | 'posted' | 'repurposed';
+export type ContentStatus = 'draft' | 'scheduled' | 'posted';
 
 export type ContentFormat =
   | 'tweet' | 'thread'
@@ -17,10 +17,8 @@ export interface Idea {
   id: string;
   title: string;
   content: string;
-  tags: string[];
-  rating: number;
+  format: IdeaFormat[];
   platforms: Platform[];
-  status: IdeaStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -37,7 +35,6 @@ export interface VoiceProfile {
 
 export interface ContentPiece {
   id: string;
-  ideaId: string | null;
   title: string;
   platform: Platform;
   format: ContentFormat;
@@ -58,18 +55,6 @@ export interface TrendingTopic {
   velocity: TrendVelocity;
   relatedKeywords: string[];
   createdAt: string;
-}
-
-export interface AnalyticsEntry {
-  id: string;
-  contentPieceId: string;
-  impressions: number;
-  engagement: number;
-  clicks: number;
-  shares: number;
-  saves: number;
-  comments: number;
-  recordedAt: string;
 }
 
 export const PLATFORM_FORMATS: Record<Platform, ContentFormat[]> = {
@@ -93,3 +78,12 @@ export const PLATFORM_LABELS: Record<Platform, string> = {
   threads: 'Threads',
   blog: 'Blog',
 };
+
+export const IDEA_FORMAT_OPTIONS: IdeaFormat[] = [
+  'reel',
+  'carousel',
+  'post',
+  'short film',
+  'long film',
+  'article',
+];

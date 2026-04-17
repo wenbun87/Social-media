@@ -28,18 +28,14 @@ import { PLATFORM_LABELS } from '@/lib/types';
 
 const STATUS_DOT_COLORS: Record<ContentStatus, string> = {
   draft: 'bg-gray-400',
-  review: 'bg-warning',
   scheduled: 'bg-accent',
   posted: 'bg-success',
-  repurposed: 'bg-primary',
 };
 
 const STATUS_BADGE_CLASSES: Record<ContentStatus, string> = {
   draft: 'bg-gray-500/15 text-gray-400',
-  review: 'bg-warning/15 text-warning',
   scheduled: 'bg-accent/15 text-accent',
   posted: 'bg-success/15 text-success',
-  repurposed: 'bg-primary/15 text-primary-light',
 };
 
 const DAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

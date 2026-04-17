@@ -146,7 +146,7 @@ export default function VoiceProfilePage() {
           <Mic className="w-6 h-6 text-primary-light" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Voice Profile</h1>
+          <h1 className="text-2xl font-bold text-text-primary">Brand Profile</h1>
           <p className="text-sm text-text-secondary">Define your content voice and brand identity</p>
         </div>
       </div>
