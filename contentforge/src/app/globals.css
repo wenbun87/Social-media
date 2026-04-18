@@ -28,22 +28,24 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
 }
 
-input, textarea, select {
-  background: #ffffff;
-  border: 1px solid var(--color-border);
-  color: var(--color-text-primary);
-  border-radius: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  outline: none;
-  transition: border-color 0.15s;
-}
+@layer base {
+  input, textarea, select {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
 
-input:focus, textarea:focus, select:focus {
-  border-color: var(--color-primary);
-}
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--color-primary);
+  }
 
-select option {
-  background: #ffffff;
+  select option {
+    background: #ffffff;
+  }
 }
 
 .shadow-card {

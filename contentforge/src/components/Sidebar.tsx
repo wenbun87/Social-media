@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Lightbulb,
-  BookUser,
+  ListTodo,
   PenTool,
   CalendarDays,
   Sparkles,
@@ -16,10 +16,10 @@ import {
 
 const NAV_ITEMS = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/voice', label: 'Brand Profile', icon: BookUser },
+  { href: '/todos', label: 'To-Do List', icon: ListTodo },
   { href: '/ideas', label: 'Idea Bank', icon: Lightbulb },
   { href: '/transform', label: 'Content Studio', icon: PenTool },
-  { href: '/calendar', label: 'Planner', icon: CalendarDays },
+  { href: '/calendar', label: 'Calendar', icon: CalendarDays },
 ];
 
 export default function Sidebar() {

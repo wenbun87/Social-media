@@ -144,19 +144,14 @@ export default function DashboardPage() {
       </div>
 
       {/* Calendar + To-Do */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-7">
-          <MiniCalendar contentPieces={content} />
-        </div>
-        <div className="lg:col-span-5">
-          <TodoList />
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <MiniCalendar contentPieces={content} />
+        <TodoList />
       </div>
 
       {/* Recent Ideas + Upcoming Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-card-dark rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-200 overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-primary to-accent" />
+        <div className="bg-card-dark rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-200">
           <div className="flex items-center justify-between p-5 border-b border-border">
             <h2 className="text-lg font-semibold text-text-primary">Recent Ideas</h2>
             <Link
@@ -203,8 +198,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="bg-card-dark rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-200 overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-accent to-success" />
+        <div className="bg-card-dark rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-200">
           <div className="flex items-center justify-between p-5 border-b border-border">
             <h2 className="text-lg font-semibold text-text-primary">Upcoming Content</h2>
             <Link

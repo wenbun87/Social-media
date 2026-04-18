@@ -209,14 +209,13 @@ export function TodoList() {
 
   const completedCount = todos.filter((t) => t.completed).length;
   const pendingTodos = todos.filter((t) => !t.completed);
-  const completedTodos = todos.filter((t) => t.completed);
 
   return (
     <div className="bg-card-dark rounded-2xl shadow-card p-5 hover:shadow-card-hover transition-shadow flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-text-primary">To-Do</h2>
-        {todos.length > 0 && (
-          <span className="text-xs text-text-muted">{completedCount}/{todos.length} done</span>
+        {completedCount > 0 && (
+          <span className="text-xs text-text-muted">{completedCount} completed</span>
         )}
       </div>
 
@@ -253,26 +252,10 @@ export function TodoList() {
             </button>
           </div>
         ))}
-        {completedTodos.map((todo) => (
-          <div key={todo.id} className="group flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-card-hover transition-colors">
-            <button onClick={() => handleToggle(todo.id)} className="flex-shrink-0">
-              <div className="w-4 h-4 rounded-full bg-success flex items-center justify-center">
-                <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            </button>
-            <span className="flex-1 text-sm text-text-muted line-through truncate">{todo.text}</span>
-            <button
-              onClick={() => handleDelete(todo.id)}
-              className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <Trash2 className="w-3.5 h-3.5 text-text-muted hover:text-danger transition-colors" />
-            </button>
-          </div>
-        ))}
-        {todos.length === 0 && (
-          <p className="text-sm text-text-muted text-center py-6">No tasks yet. Add one above!</p>
+        {pendingTodos.length === 0 && (
+          <p className="text-sm text-text-muted text-center py-6">
+            {todos.length === 0 ? 'No tasks yet. Add one above!' : 'All done! 🎉'}
+          </p>
         )}
       </div>
     </div>
