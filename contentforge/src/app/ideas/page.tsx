@@ -170,7 +170,11 @@ export default function IdeasPage() {
       body: JSON.stringify(newPiece),
     }).then(() => refetchPieces()).catch(() => {});
     setSentToStudioId(idea.id);
-    setTimeout(() => setSentToStudioId(null), 2500);
+    setTimeout(() => {
+      setIdeas((prev) => prev.filter((i) => i.id !== idea.id));
+      fetch(`/api/ideas/${idea.id}`, { method: 'DELETE' }).then(() => refetchIdeas()).catch(() => {});
+      setSentToStudioId(null);
+    }, 1500);
   }
 
   return (

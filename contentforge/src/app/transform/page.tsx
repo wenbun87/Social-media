@@ -138,7 +138,7 @@ export default function ContentStudioPage() {
         format: form.format,
         content: form.content,
         status: form.status,
-        scheduledDate: form.status === 'scheduled' ? form.scheduledDate || null : null,
+        scheduledDate: form.scheduledDate || null,
         notes: form.notes,
       };
       setPieces((prev) =>
@@ -159,7 +159,7 @@ export default function ContentStudioPage() {
         format: form.format,
         content: form.content,
         status: form.status,
-        scheduledDate: form.status === 'scheduled' ? form.scheduledDate || null : null,
+        scheduledDate: form.scheduledDate || null,
         notes: form.notes,
         createdAt: now,
         updatedAt: now,
@@ -189,12 +189,12 @@ export default function ContentStudioPage() {
     fetch(`/api/content/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...piece, status, scheduledDate: status === 'scheduled' ? piece.scheduledDate : null }),
+      body: JSON.stringify({ ...piece, status }),
     }).then(() => refetchPieces()).catch(() => {});
     setPieces((prev) =>
       prev.map((p) =>
         p.id === id
-          ? { ...p, status, scheduledDate: status === 'scheduled' ? p.scheduledDate : null, updatedAt: now }
+          ? { ...p, status, updatedAt: now }
           : p
       )
     );
@@ -326,22 +326,28 @@ export default function ContentStudioPage() {
               </select>
             </div>
 
-            {/* Scheduled Date */}
-            {form.status === 'scheduled' && (
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Scheduled Date <span className="text-danger">*</span>
-                </label>
-                <input
-                  type="datetime-local"
-                  value={form.scheduledDate}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, scheduledDate: e.target.value }))
-                  }
-                  className="w-full"
-                />
-              </div>
-            )}
+            {/* Posting Date */}
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                Posting Date
+              </label>
+              <input
+                type="datetime-local"
+                value={form.scheduledDate}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setForm((prev) => ({
+                    ...prev,
+                    scheduledDate: val,
+                    status: val && prev.status === 'draft' ? 'scheduled' : prev.status,
+                  }));
+                }}
+                className="w-full"
+              />
+              <p className="mt-1 text-xs text-text-muted">
+                Adding a date will show this piece on your calendar
+              </p>
+            </div>
           </div>
 
           {/* Content textarea */}
@@ -392,7 +398,7 @@ export default function ContentStudioPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={handleSave}
-              disabled={!form.title.trim() || (form.status === 'scheduled' && !form.scheduledDate)}
+              disabled={!form.title.trim()}
               className="px-5 py-2.5 bg-primary hover:bg-primary-light disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg font-medium text-sm transition-colors"
             >
               {editingId ? 'Update' : 'Create'} Content
