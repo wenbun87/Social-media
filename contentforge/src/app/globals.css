@@ -45,3 +45,13 @@ input:focus, textarea:focus, select:focus {
 select option {
   background: #ffffff;
 }
+
+.shadow-card {
+  box-shadow: 0 1px 3px rgba(45, 31, 61, 0.04), 0 4px 12px rgba(45, 31, 61, 0.06);
+}
+.shadow-card-hover {
+  box-shadow: 0 2px 8px rgba(45, 31, 61, 0.06), 0 8px 24px rgba(45, 31, 61, 0.10);
+}
+.shadow-card-elevated {
+  box-shadow: 0 4px 16px rgba(45, 31, 61, 0.08), 0 12px 32px rgba(45, 31, 61, 0.12);
+}

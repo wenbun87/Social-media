@@ -79,6 +79,13 @@ export const PLATFORM_LABELS: Record<Platform, string> = {
   blog: 'Blog',
 };
 
+export interface TodoItem {
+  id: string;
+  text: string;
+  completed: boolean;
+  createdAt: string;
+}
+
 export const IDEA_FORMAT_OPTIONS: IdeaFormat[] = [
   'reel',
   'carousel',

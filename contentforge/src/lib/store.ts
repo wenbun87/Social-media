@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Idea, VoiceProfile, ContentPiece, TrendingTopic } from './types';
+import type { Idea, VoiceProfile, ContentPiece, TrendingTopic, TodoItem } from './types';
 
 function getFromStorage<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
@@ -140,4 +140,8 @@ export function useContentPieces() {
 
 export function useTrendingTopics() {
   return useApiStorage<TrendingTopic[]>('contentforge_trending', '/api/trending', []);
+}
+
+export function useTodos() {
+  return useApiStorage<TodoItem[]>('contentforge_todos', '/api/todos', []);
 }

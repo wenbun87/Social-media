@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useIdeas, useContentPieces } from '@/lib/store';
 import type { ContentStatus, Platform } from '@/lib/types';
+import { GreetingHeader, ContentPipelineBar, MiniCalendar, TodoList } from '@/components/DashboardWidgets';
 
 const CONTENT_STATUS_COLORS: Record<ContentStatus, string> = {
   draft: 'bg-text-muted/20 text-text-muted',
@@ -32,10 +33,18 @@ const PLATFORM_COLORS: Record<Platform, string> = {
   blog: 'bg-emerald-500/20 text-emerald-400',
 };
 
+const STAT_GRADIENTS = [
+  'from-purple-100 to-purple-50',
+  'from-pink-100 to-pink-50',
+  'from-orange-100 to-orange-50',
+  'from-emerald-100 to-emerald-50',
+];
+
 export default function DashboardPage() {
   const [ideas] = useIdeas();
   const [content] = useContentPieces();
 
+  const draftsCount = content.filter((c) => c.status === 'draft').length;
   const scheduledCount = content.filter((c) => c.status === 'scheduled').length;
   const postedCount = content.filter((c) => c.status === 'posted').length;
 
@@ -85,19 +94,19 @@ export default function DashboardPage() {
   const quickActions = [
     {
       title: 'New Idea',
-      description: 'Capture a fresh content idea before it slips away',
+      description: 'Capture a fresh content idea',
       href: '/ideas',
       icon: Plus,
     },
     {
       title: 'Create Content',
-      description: 'Transform your ideas into platform-ready content',
+      description: 'Transform ideas into posts',
       href: '/transform',
       icon: Sparkles,
     },
     {
       title: 'View Calendar',
-      description: 'See your upcoming content schedule at a glance',
+      description: 'See your content schedule',
       href: '/calendar',
       icon: Calendar,
     },
@@ -105,24 +114,22 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-text-primary">Dashboard</h1>
-        <p className="mt-1 text-text-secondary">Your content creation overview</p>
-      </div>
+      <GreetingHeader />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => {
+      <ContentPipelineBar drafts={draftsCount} scheduled={scheduledCount} posted={postedCount} />
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, i) => {
           const Icon = stat.icon;
           return (
             <div
               key={stat.label}
-              className="bg-card-dark rounded-xl p-5 border border-border"
+              className="bg-card-dark rounded-2xl p-5 shadow-card hover:shadow-card-hover transition-all duration-200"
             >
               <div className="flex items-center gap-4">
                 <div
-                  className={`flex items-center justify-center w-11 h-11 rounded-lg ${stat.bgClass}`}
+                  className={`flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br ${STAT_GRADIENTS[i]}`}
                 >
                   <Icon className={`w-5 h-5 ${stat.colorClass}`} />
                 </div>
@@ -136,37 +143,20 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {quickActions.map((action) => {
-          const Icon = action.icon;
-          return (
-            <Link
-              key={action.title}
-              href={action.href}
-              className="group bg-card-dark rounded-xl p-5 border border-border hover:border-primary transition-colors"
-            >
-              <div className="flex items-start gap-4">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/20">
-                  <Icon className="w-5 h-5 text-primary-light" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-text-primary group-hover:text-primary-light transition-colors">
-                    {action.title}
-                  </h3>
-                  <p className="mt-1 text-sm text-text-muted">{action.description}</p>
-                </div>
-                <ArrowRight className="w-4 h-4 text-text-muted mt-1 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-              </div>
-            </Link>
-          );
-        })}
+      {/* Calendar + To-Do */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-7">
+          <MiniCalendar contentPieces={content} />
+        </div>
+        <div className="lg:col-span-5">
+          <TodoList />
+        </div>
       </div>
 
-      {/* Bottom Sections */}
+      {/* Recent Ideas + Upcoming Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Ideas */}
-        <div className="bg-card-dark rounded-xl border border-border">
+        <div className="bg-card-dark rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-200 overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-primary to-accent" />
           <div className="flex items-center justify-between p-5 border-b border-border">
             <h2 className="text-lg font-semibold text-text-primary">Recent Ideas</h2>
             <Link
@@ -213,8 +203,8 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Upcoming Content */}
-        <div className="bg-card-dark rounded-xl border border-border">
+        <div className="bg-card-dark rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-200 overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-accent to-success" />
           <div className="flex items-center justify-between p-5 border-b border-border">
             <h2 className="text-lg font-semibold text-text-primary">Upcoming Content</h2>
             <Link
@@ -262,6 +252,33 @@ export default function DashboardPage() {
             </ul>
           )}
         </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {quickActions.map((action) => {
+          const Icon = action.icon;
+          return (
+            <Link
+              key={action.title}
+              href={action.href}
+              className="group bg-card-dark rounded-2xl p-5 shadow-card hover:shadow-card-hover transition-all duration-200"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-purple-100 to-pink-50">
+                  <Icon className="w-5 h-5 text-primary-light" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-text-primary group-hover:text-primary-light transition-colors">
+                    {action.title}
+                  </h3>
+                  <p className="text-xs text-text-muted">{action.description}</p>
+                </div>
+                <ArrowRight className="w-4 h-4 text-text-muted opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

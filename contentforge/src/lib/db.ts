@@ -55,6 +55,13 @@ export async function initializeDatabase() {
       related_keywords TEXT NOT NULL DEFAULT '[]',
       created_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS todos (
+      id TEXT PRIMARY KEY,
+      text TEXT NOT NULL,
+      completed INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL
+    );
   `);
 
   // Migrate existing ideas table: add format column if missing
